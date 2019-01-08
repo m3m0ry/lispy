@@ -6,22 +6,25 @@ import std.range : drop;
 import std.exception : enforce;
 import std.container : DList;
 
-class ConsCell{
-  ConsCell car;
-  ConsCell cdr;
+
+//TODO abstract class or interface should be Object
+interface LispObject{
+  string toString();
+}
+
+class ConsCell: LispObject{
+  LispObject car;
+  LispObject cdr;
+  this(LispObject car = null, LispObject cdr = null){
+    this.car = car;
+    this.cdr = cdr;
+  }
   override string toString(){
     return format!"( %s . %s )"(car, cdr);
   }
 }
 
-abstract class LeafCell: ConsCell{
-  invariant(){
-    assert(car is null);
-    assert(cdr is null);
-  }
-}
-
-class NumberCell: LeafCell
+class Number: LispObject
 {
   int num;
   this(int x){
@@ -35,7 +38,7 @@ class NumberCell: LeafCell
   }
 }
 
-class ErrorCell: ConsCell{
+class LispError: LispObject{
   string err;
   this(string e){
     err = e;
@@ -45,7 +48,7 @@ class ErrorCell: ConsCell{
   }
 }
 
-class SymbolCell: ConsCell{
+class Symbol: LispObject{
   string sym;
   this(string s){
     sym = s;

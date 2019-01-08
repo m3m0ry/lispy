@@ -10,6 +10,7 @@ import pegged.grammar;
 
 import conscell;
 import transform;
+import func;
 
 void main()
 {
@@ -32,9 +33,9 @@ void main()
     auto tree = Lispy(line);
     writeln("Execution:");
     writef("%s", tree);
-    auto consTree = transform.transform(tree);
-    writeln(consTree.toString);
-    writeln(prin1(consTree));
+    auto lispObject = transform.transform(tree);
+    writeln(lispObject.toString);
+    writeln(prin1(lispObject));
     //writeln(ConsTree.eval);
   }
 }
