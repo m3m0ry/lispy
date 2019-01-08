@@ -32,8 +32,9 @@ void main()
     auto tree = Lispy(line);
     writeln("Execution:");
     writef("%s", tree);
-    auto ConsTree = transform.transform(tree);
-    writeln(ConsTree.toString);
+    auto consTree = transform.transform(tree);
+    writeln(consTree.toString);
+    writeln(prin1(consTree));
     //writeln(ConsTree.eval);
   }
 }
