@@ -1,26 +1,43 @@
 import std.stdio;
 import std.format;
 import std.algorithm: reduce, map, each, any;
+import std.algorithm.iteration;
 import std.conv : to, ConvException, text;
 import std.range : drop;
 import std.exception : enforce;
 import std.container : DList;
 
 
-//TODO abstract class or interface should be Object
-interface LispObject{
-  string toString();
+string generateCars(){
+  string[] cars = ["car", "cdr", "caar", "cadr", "cdar", "cddr", "caaar", "caadr", "cadar", "caddr", "cdaar", "cdadr", "cddar", "cdddr", "caaaar", "caaadr", "caadar", "caaddr", "cadaar", "cadadr", "caddar", "cadddr", "cdaaar", "cdaadr", "cdadar", "cdaddr", "cddaar", "cddadr", "cdddar", "cddddr"];
+  string output;
+  foreach(car; cars){
+    output ~= format!"LispObject %s(){return new LispError(format!\"%s on %%s is not allowed\"(this));}\n"(car,car);
+  }
+  return output;
 }
 
+
+
+
+abstract class LispObject{
+  override string toString();
+  mixin(generateCars());
+}
+
+//TODO implement car function/property
 class ConsCell: LispObject{
-  LispObject car;
-  LispObject cdr;
+  LispObject car_;
+  LispObject cdr_;
   this(LispObject car = null, LispObject cdr = null){
-    this.car = car;
-    this.cdr = cdr;
+    this.car_ = car;
+    this.cdr_ = cdr;
   }
   override string toString(){
     return format!"( %s . %s )"(car, cdr);
+  }
+  override LispObject car(){
+    return car_;
   }
 }
 

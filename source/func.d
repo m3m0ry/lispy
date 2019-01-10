@@ -29,24 +29,12 @@ ConsCell list(ConsCell cell){
 
 //Cons concepts
 //TODO caar, cadr, cdar, cddr, ..., cddddr
-LispObject car(ConsCell cell){
-  return cell.car;
-}
-
 ConsCell rplaca(ConsCell cell, LispObject car){
   cell.car = car;
   return cell;
 }
 
-LispObject cdr(ConsCell cell){
-  return cell.cdr;
-}
-
 LispObject rplacd(LispObject cell, LispObject cdr){
-  //TODO need checkCellType first
-  auto consCell = cast(ConsCell)cell;
-  if (consCell is null)
-    return new LispError("")
   cell.cdr = cdr;
   return cell;
 }
@@ -58,5 +46,4 @@ ConsCell cons(LispObject car, LispObject cdr){
 bool consp(LispObject cell){
   return cast(ConsCell)cell !is null;
 }
-
 
