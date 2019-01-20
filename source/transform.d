@@ -1,21 +1,21 @@
 import pegged.peg;
 
-import conscell;
+import types;
 
-LispObject transform(ParseTree p){
+LispT transform(ParseTree p){
   switch(p.name){
   case "Lispy.number":
-    return new Number(p.matches[0]);
+    return new LispNumber(p.matches[0]);
   case "Lispy.symbol":
-    return new Symbol(p.matches[0]);
+    return new LispSymbol(p.matches[0]);
   case "Lispy.sexpr":
-    auto head = new ConsCell;
+    auto head = new LispCons;
     auto x = head;
     foreach(i, child; p.children){
       x.car = transform(child);
       if (i+1 < p.children.length){
-        x.cdr = new ConsCell;
-        x = cast(ConsCell) x.cdr;
+        x.cdr = new LispCons;
+        x = cast(LispCons) x.cdr;
       }
     }
     return head;

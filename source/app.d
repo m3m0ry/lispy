@@ -8,7 +8,7 @@ import std.container : DList;
 
 import pegged.grammar;
 
-import conscell;
+import types;
 import transform;
 import func;
 
@@ -23,7 +23,7 @@ void main()
     expr     < number / symbol / sexpr / qexpr
     sexpr    < :'(' expr* :')'
     qexpr    < :"'" :'(' expr* :')'
-    symbol   < '+' / '-' / '*' / '/'
+    symbol   <~ [a-zA-Z]+
     number   <~ '-'? [0-9]+
   `));
 
@@ -34,8 +34,8 @@ void main()
     writeln("Execution:");
     writef("%s", tree);
     auto lispObject = transform.transform(tree);
-    writeln(lispObject.toString);
-    writeln(prin1(lispObject));
-    //writeln(ConsTree.eval);
+    writeln("Transformed:", lispObject.toString);
+    writeln("Prin1:", prin1(lispObject));
+    writeln("Eval:", eval(lispObject).toString);
   }
 }
