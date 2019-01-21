@@ -36,6 +36,9 @@ LispT eval(LispT cell){
 LispT apply(LispT[] o ...){
   verifyArgsCount(o, 2);
   if (isCell!LispSymbol(o[0])){
+    auto symbol = castCell!LispSymbol(o[0]);
+    writeln("apply" ~ symbol.sym);
+    return core[symbol.sym](o[1..$]);
   }
   return new LispError(format!"%s is not a LispSymbol"(o[0]));
 }

@@ -18,7 +18,7 @@ return new LispError(format!\"" ~ car ~ "on %s is not allowed\"(cell));}";
 }
 
 bool isCell(T)(LispT cell){
-  return (typeid(cell) == typeid(T));
+  return !(cast(T) cell is null);
 }
 
 T castCell(T)(LispT cell){
