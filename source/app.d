@@ -12,21 +12,6 @@ import types;
 import transform;
 import func;
 
-//void main(string[] args){
-//writeln("Test");
-//auto cons = new LispCons(new LispNumber(1));
-//outer: switch(args[1]){
-//foreach(memberName; __traits(allMembers, LispT)){
-//case memberName:
-//writeln((__traits(getMember, func, memberName)(cons)));
-//break outer;
-//}
-//default:
-//write("No such function");
-//break;
-//}
-//}
-
 void main()
 {
   writeln("Lispy Version 0.0.1");

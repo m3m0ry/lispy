@@ -27,10 +27,15 @@ T castCell(T)(LispT cell){
   return res;
 }
 
-LispT[] verifyArgsCount(LispT[] o, int l){
-  if (o.length != l)
-    throw new Exception("Expected " ~ to!string(l) ~ " arguments");
-  return o;
+void verifyArgsCount(LispT o, int l){
+  auto cons = castCell!LispCons(o);
+  if (cons.cdr !is null){
+    return verifyArgsCount(cons.cdr, l-1);
+  }
+  else if(0 == l){
+    return;
+  }
+  throw new Exception("Expected " ~ to!string(l) ~ " arguments");
 }
 
 LispT boolToSymbol(bool b){

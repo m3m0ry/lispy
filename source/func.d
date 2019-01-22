@@ -5,7 +5,7 @@ import std.stdio;
 import types;
 
 
-alias BuiltinStaticFuncType = LispT function(LispT[] o ...);
+alias BuiltinStaticFuncType = LispT function(LispT o);
 BuiltinStaticFuncType[string] core;
 
 static this(){
@@ -21,26 +21,35 @@ static this(){
 LispT eval(LispT cell){
   if (isCell!LispCons(cell)){
     auto cons = castCell!LispCons(cell);
-    cons.car = eval(cell.car);
-    cons.cdr = eval(cell.cdr);
-    if (isCell!LispSymbol(cell)){
-      return apply([cons.car] ~ [cons.cdr]);
+    auto f = eval(cell.car);
+    auto c = evlist(cell.cdr);
+    if (isCell!LispSymbol(f)){
+      return apply(cons.car, cons.cdr);
     }
-    return cons;
+    return new LispError(format!"%s is not a LispSymbol"(f));
   }
   else{
     return cell;
   }
 }
 
-LispT apply(LispT[] o ...){
+LispT apply(LispT o){
   verifyArgsCount(o, 2);
   if (isCell!LispSymbol(o[0])){
     auto symbol = castCell!LispSymbol(o[0]);
-    writeln("apply" ~ symbol.sym);
+    writeln("apply", symbol.sym);
     return core[symbol.sym](o[1..$]);
   }
   return new LispError(format!"%s is not a LispSymbol"(o[0]));
+}
+
+LispT evlist(LispT o){
+  verifyArgsCount(o, 1);
+  if (isCell!LispCons(o[0])){
+    auto cons = castCell!LispCons(o[0]);
+    return new LispCons(eval(cons.car), evlist(cons.cdr));
+  }
+  return new LispError(format!"%s is not a LispCons"(o[0]));
 }
 
 
@@ -65,12 +74,12 @@ string prin1(LispT cell, bool beginning = true){
   return output;
 }
 
-LispT list(LispT[] o ...){
+LispT list(LispT o){
   //TODO traverse list and lookup variables
   return o[0];
 }
 
-LispT car(LispT[] o ...){
+LispT car(LispT o){
   verifyArgsCount(o, 1);
   if (isCell!LispCons(o[0])){
     auto cons = castCell!LispCons(o[0]);
@@ -80,7 +89,7 @@ LispT car(LispT[] o ...){
     return new LispError(format!"%s is not a LispCons"(o[0]));
 }
 
-LispT cdr(LispT[] o ...){
+LispT cdr(LispT o){
   verifyArgsCount(o, 1);
   if (isCell!LispCons(o[0])){
     auto cons = castCell!LispCons(o[0]);
@@ -90,7 +99,7 @@ LispT cdr(LispT[] o ...){
     return new LispError(format!"%s is not a LispCons"(o[0]));
 }
 
-LispT rplaca(LispT[] o ...){
+LispT rplaca(LispT o){
   verifyArgsCount(o, 2);
   if (isCell!LispCons(o[0])){
     auto cons = castCell!LispCons(o[0]);
@@ -101,7 +110,7 @@ LispT rplaca(LispT[] o ...){
     return new LispError(format!"%s is not a LispCons"(o[0]));
 }
 
-LispT rplacd(LispT[] o ...){
+LispT rplacd(LispT o){
   verifyArgsCount(o, 2);
   if (isCell!LispCons(o[0])){
     auto cons = castCell!LispCons(o[0]);
@@ -112,12 +121,12 @@ LispT rplacd(LispT[] o ...){
     return new LispError(format!"%s is not a LispCons"(o[0]));
 }
 
-LispT cons(LispT[] o ...){
+LispT cons(LispT o){
   verifyArgsCount(o, 2);
   return new LispCons(o[0], o[1]);
 }
 
-LispT consp(LispT[] o ...){
+LispT consp(LispT o){
   verifyArgsCount(o, 1);
   return boolToSymbol(isCell!LispCons(o[0]));
 }
