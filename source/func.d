@@ -24,7 +24,7 @@ LispT eval(LispT cell){
     auto f = eval(cell.car);
     auto c = evlist(cell.cdr);
     if (isCell!LispSymbol(f)){
-      return apply(cons.car, cons.cdr);
+      return apply(new LispCons(f, c));
     }
     return new LispError(format!"%s is not a LispSymbol"(f));
   }
@@ -34,22 +34,27 @@ LispT eval(LispT cell){
 }
 
 LispT apply(LispT o){
-  verifyArgsCount(o, 2);
-  if (isCell!LispSymbol(o[0])){
-    auto symbol = castCell!LispSymbol(o[0]);
+  try{
+    verifyArgsCount(o, 2);
+    auto symbol = castCell!LispSymbol(first(o));
     writeln("apply", symbol.sym);
-    return core[symbol.sym](o[1..$]);
+    return core[symbol.sym](second(o));
   }
-  return new LispError(format!"%s is not a LispSymbol"(o[0]));
+  catch(InterpreterException e){
+    return new LispError(e.msg);
+  }
 }
 
 LispT evlist(LispT o){
-  verifyArgsCount(o, 1);
-  if (isCell!LispCons(o[0])){
-    auto cons = castCell!LispCons(o[0]);
+  try{
+    //TODO last element
+    verifyArgsCount(o, 1);
+    auto cons = castCell!LispCons(first(o));
     return new LispCons(eval(cons.car), evlist(cons.cdr));
   }
-  return new LispError(format!"%s is not a LispCons"(o[0]));
+  catch(InterpreterException e){
+    return new LispError(e.msg);
+  }
 }
 
 
@@ -74,60 +79,95 @@ string prin1(LispT cell, bool beginning = true){
   return output;
 }
 
-LispT list(LispT o){
-  //TODO traverse list and lookup variables
-  return o[0];
+LispT nth(LispT o){
+  try{
+    verifyArgsCount(o, 2);
+    auto n = castCell!LispNumber(o);
+    auto l = castCell!LispCons(o);
+    if(n > 0)
+      return nth(n-1, c.cdr);
+    return c.car;
+  }
+  catch(InterpreterException e){
+    return new LispError("Not enough elements!");
+  }
 }
 
+LispT list(LispT o){
+  //TODO traverse list and lookup variables
+  return o;
+}
+
+alias first = car;
+//alias second = cadr;
+//alias third = caddr;
+//alias third = cadddr;
+//...tenth
+alias rest = cdr;
+
 LispT car(LispT o){
-  verifyArgsCount(o, 1);
-  if (isCell!LispCons(o[0])){
-    auto cons = castCell!LispCons(o[0]);
+  try{
+    verifyArgsCount(o, 1);
+    auto cons = castCell!LispCons(first(o));
     return cons.car;
   }
-  else
-    return new LispError(format!"%s is not a LispCons"(o[0]));
+  catch(InterpreterException e){
+    return new LispError(format!"%s is not a LispCons"(o));
+  }
 }
 
 LispT cdr(LispT o){
-  verifyArgsCount(o, 1);
-  if (isCell!LispCons(o[0])){
-    auto cons = castCell!LispCons(o[0]);
+  try{
+    verifyArgsCount(o, 1);
+    auto cons = castCell!LispCons(o);
     return cons.cdr;
   }
-  else
-    return new LispError(format!"%s is not a LispCons"(o[0]));
+  catch(InterpreterException e){
+    return new LispError(format!"%s is not a LispCons"(o));
+  }
 }
 
 LispT rplaca(LispT o){
-  verifyArgsCount(o, 2);
-  if (isCell!LispCons(o[0])){
-    auto cons = castCell!LispCons(o[0]);
-    cons.car = o[1];
-    return cons;
+  try{
+    verifyArgsCount(o, 2);
+    auto c = castCell!LispCons(first(o));
+    c.car = second(o);
+    return c;
   }
-  else
-    return new LispError(format!"%s is not a LispCons"(o[0]));
+  catch(InterpreterException e){
+    return new LispError(format!"%s is not a LispCons"(o));
+  }
 }
 
 LispT rplacd(LispT o){
-  verifyArgsCount(o, 2);
-  if (isCell!LispCons(o[0])){
-    auto cons = castCell!LispCons(o[0]);
-    cons.cdr = o[1];
-    return cons;
+  try{
+    verifyArgsCount(o, 2);
+    auto c = castCell!LispCons(first(o));
+    c.cdr = second(o);
+    return c;
   }
-  else
-    return new LispError(format!"%s is not a LispCons"(o[0]));
+  catch(InterpreterException e){
+    return new LispError(format!"%s is not a LispCons"(o));
+  }
 }
 
 LispT cons(LispT o){
-  verifyArgsCount(o, 2);
-  return new LispCons(o[0], o[1]);
+  try{
+    verifyArgsCount(o, 2);
+    return new LispCons(first(o), second(o));
+  }
+  catch(InterpreterException e){
+    return new LispError(e.msg);
+  }
 }
 
 LispT consp(LispT o){
-  verifyArgsCount(o, 1);
-  return boolToSymbol(isCell!LispCons(o[0]));
+  try{
+    verifyArgsCount(o, 1);
+    return boolToSymbol(isCell!LispCons(first(o)));
+  }
+  catch(InterpreterException e){
+    return new LispError(e.msg);
+  }
 }
 
