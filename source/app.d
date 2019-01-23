@@ -34,8 +34,8 @@ void main()
     writeln("Execution:");
     writef("%s", tree);
     auto lispObject = transform.transform(tree);
-    writeln("Transformed:", lispObject.toString);
-    writeln("Prin1:", prin1(lispObject));
-    writeln("Eval:", eval(lispObject).toString);
+    writeln("Transformed: ", lispObject.toString);
+    writeln("Prin1: ", prin1(lispObject));
+    writeln("Eval: ", eval(lispObject).toString);
   }
 }

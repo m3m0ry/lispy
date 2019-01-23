@@ -2,9 +2,13 @@ import types;
 import std.conv;
 
 import object : TypeInfo_Class;
+import std.algorithm : map, cartesianProduct;
 import std.format;
+import std.range;
 
 import std.exception;
+
+import func;
 
 
 class InterpreterException: Exception
@@ -13,28 +17,52 @@ class InterpreterException: Exception
   mixin basicExceptionCtors;
 }
 
-string generateCars(){
-  string[] cars = ["car", "cdr", "caar", "cadr", "cdar", "cddr", "caaar", "caadr", "cadar", "caddr", "cdaar", "cdadr", "cddar", "cdddr", "caaaar", "caaadr", "caadar", "caaddr", "cadaar", "cadadr", "caddar", "cadddr", "cdaaar", "cdaadr", "cdadar", "cdaddr", "cddaar", "cddadr", "cdddar", "cddddr"];
+string generateCarsCore(){
+  auto cars = generateCars();
   string output;
   foreach(car; cars){
-    output ~= "LispT " ~ car ~"(LispT cell){
-if (isCell!ConsCell(cell))
-return cell;
-else
-return new LispError(format!\"" ~ car ~ "on %s is not allowed\"(cell));}";
+    output ~= format!"core[\"c%sr\"] = &c%sr;"(car, car);
   }
   return output;
 }
 
+string[] generateCars(){
+  auto cars = ["a", "d"];
+  auto new_cars = cars;
+  foreach(i; iota(3)){
+    new_cars = cartesianProduct(["a", "d"], new_cars).map!(a => format!"%s%s"(a.expand)).array;
+    cars ~= new_cars;
+  }
+  return cars;
+}
+
+string generateCarsFunction(){
+  auto cars = generateCars();
+  string output;
+  foreach(car; cars){
+    output ~= "LispT c" ~ car ~"r(LispT o){\n\t\tLispT c = o;\n";
+    foreach_reverse(c; car){
+      output ~= format!"\tc = castCell!LispCons(c).c%sr;\n"(c);
+    }
+    output ~= "\treturn c;}\n";
+  }
+  return output;
+}
 
 bool isCell(T)(LispT cell){
-  return !(cast(T) cell is null);
+  return ((cast(T) cell) !is null);
 }
 
 T castCell(T)(LispT cell){
   T res = cast(T) cell;
-  if (res is null) throw new InterpreterException("Expected " ~ typeid(T).name);
+  if (res is null) throw new InterpreterException("Expected " ~ typeid(T).name ~ "    Recieved " ~ cell.toString);
   return res;
+}
+
+void verifyListLength(LispT o, int l){
+  auto n = castCell!LispNumber(length(o));
+  if (n.num != l)
+    throw new InterpreterException("Expected " ~ to!string(l) ~ " arguments but " ~ n.toString ~ " given");
 }
 
 void verifyArgsCount(LispT o, int l){

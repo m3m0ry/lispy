@@ -17,7 +17,7 @@ interface LispList: LispSequence{};
 class LispCons: LispList{
   LispT car;
   LispT cdr;
-  this(LispT car = null, LispT cdr = null){
+  this(LispT car = lispNil, LispT cdr = lispNil){
     this.car = car;
     this.cdr = cdr;
   }
@@ -37,6 +37,16 @@ class LispNumber: LispT
   }
   override string toString(){
     return to!string(num);
+  }
+  LispNumber opBinary(string op)(LispNumber rhs){
+    static if ( op == "+") return new LispNumber(num + rhs.num);
+    else static if (op == "-") return num - rhs.num;
+    else static assert(0, "Operator" ~ op ~ " is not yet implemented");
+  }
+  LispNumber opBinary(string op)(int rhs){
+    static if ( op == "+") return num + rhs;
+    else static if (op == "-") return num - rhs;
+    else static assert(0, "Operator" ~ op ~ " is not yet implemented");
   }
 }
 

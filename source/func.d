@@ -9,8 +9,7 @@ alias BuiltinStaticFuncType = LispT function(LispT o);
 BuiltinStaticFuncType[string] core;
 
 static this(){
-  core["car"] = &car;
-  core["cdr"] = &cdr;
+  mixin(generateCarsCore());
   core["rplaca"] = &rplaca;
   core["rplacd"] = &rplacd;
   core["cons"] = &cons;
@@ -21,10 +20,10 @@ static this(){
 LispT eval(LispT cell){
   if (isCell!LispCons(cell)){
     auto cons = castCell!LispCons(cell);
-    auto f = eval(cell.car);
-    auto c = evlist(cell.cdr);
+    auto f = eval(first(cell));
+    auto c = evlist(rest(cell));
     if (isCell!LispSymbol(f)){
-      return apply(new LispCons(f, c));
+      return apply(new LispCons(f, new LispCons(c)));
     }
     return new LispError(format!"%s is not a LispSymbol"(f));
   }
@@ -34,27 +33,16 @@ LispT eval(LispT cell){
 }
 
 LispT apply(LispT o){
-  try{
-    verifyArgsCount(o, 2);
-    auto symbol = castCell!LispSymbol(first(o));
-    writeln("apply", symbol.sym);
-    return core[symbol.sym](second(o));
-  }
-  catch(InterpreterException e){
-    return new LispError(e.msg);
-  }
+  verifyListLength(o, 2);
+  auto symbol = castCell!LispSymbol(first(o));
+  return core[symbol.sym](second(o));
 }
 
 LispT evlist(LispT o){
-  try{
-    //TODO last element
-    verifyArgsCount(o, 1);
-    auto cons = castCell!LispCons(first(o));
-    return new LispCons(eval(cons.car), evlist(cons.cdr));
-  }
-  catch(InterpreterException e){
-    return new LispError(e.msg);
-  }
+  if (o is lispNil)
+    return o;
+  auto c = castCell!LispCons(o);
+  return new LispCons(eval(first(c)), evlist(rest(c)));
 }
 
 
@@ -80,17 +68,12 @@ string prin1(LispT cell, bool beginning = true){
 }
 
 LispT nth(LispT o){
-  try{
-    verifyArgsCount(o, 2);
-    auto n = castCell!LispNumber(o);
-    auto l = castCell!LispCons(o);
-    if(n > 0)
-      return nth(n-1, c.cdr);
-    return c.car;
-  }
-  catch(InterpreterException e){
-    return new LispError("Not enough elements!");
-  }
+  verifyListLength(o, 2);
+  auto n = castCell!LispNumber(o);
+  auto c = castCell!LispCons(o);
+  if(n.num > 0)
+    return nth(new LispCons(new LispNumber(n.num-1), c.cdr));
+  return c.car;
 }
 
 LispT list(LispT o){
@@ -98,76 +81,45 @@ LispT list(LispT o){
   return o;
 }
 
+
+LispT length(LispT o){
+  auto c = castCell!LispCons(o);
+  if (c.cdr is lispNil)
+    return new LispNumber(1);
+  else
+    return new LispNumber(1) + castCell!LispNumber(length(c.cdr));
+}
+
+
+mixin(generateCarsFunction());
 alias first = car;
-//alias second = cadr;
-//alias third = caddr;
-//alias third = cadddr;
+alias second = cadr;
+alias third = caddr;
+alias fourth = cadddr;
 //...tenth
 alias rest = cdr;
 
-LispT car(LispT o){
-  try{
-    verifyArgsCount(o, 1);
-    auto cons = castCell!LispCons(first(o));
-    return cons.car;
-  }
-  catch(InterpreterException e){
-    return new LispError(format!"%s is not a LispCons"(o));
-  }
-}
-
-LispT cdr(LispT o){
-  try{
-    verifyArgsCount(o, 1);
-    auto cons = castCell!LispCons(o);
-    return cons.cdr;
-  }
-  catch(InterpreterException e){
-    return new LispError(format!"%s is not a LispCons"(o));
-  }
-}
-
 LispT rplaca(LispT o){
-  try{
-    verifyArgsCount(o, 2);
-    auto c = castCell!LispCons(first(o));
-    c.car = second(o);
-    return c;
-  }
-  catch(InterpreterException e){
-    return new LispError(format!"%s is not a LispCons"(o));
-  }
+  verifyListLength(o, 2);
+  auto c = castCell!LispCons(first(o));
+  c.car = second(o);
+  return c;
 }
 
 LispT rplacd(LispT o){
-  try{
-    verifyArgsCount(o, 2);
-    auto c = castCell!LispCons(first(o));
-    c.cdr = second(o);
-    return c;
-  }
-  catch(InterpreterException e){
-    return new LispError(format!"%s is not a LispCons"(o));
-  }
+  verifyListLength(o, 2);
+  auto c = castCell!LispCons(first(o));
+  c.cdr = second(o);
+  return c;
 }
 
 LispT cons(LispT o){
-  try{
-    verifyArgsCount(o, 2);
-    return new LispCons(first(o), second(o));
-  }
-  catch(InterpreterException e){
-    return new LispError(e.msg);
-  }
+  verifyListLength(o, 2);
+  return new LispCons(first(o), second(o));
 }
 
 LispT consp(LispT o){
-  try{
-    verifyArgsCount(o, 1);
-    return boolToSymbol(isCell!LispCons(first(o)));
-  }
-  catch(InterpreterException e){
-    return new LispError(e.msg);
-  }
+  verifyListLength(o, 1);
+  return boolToSymbol(isCell!LispCons(first(o)));
 }
 
